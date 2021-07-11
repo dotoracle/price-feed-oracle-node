@@ -1,0 +1,10 @@
+{
+  "tokens": [
+//    "btc"
+    "btc", "eth", "bnb", "ada", "xrp", "doge", "dot", "uni", "sol", "bch", "ltc", "link", "matic"
+  ],
+  "exchanges": [
+    "binance", "coinbase", "bitfinex", "bitmart", "okex", "ftx", "huobi"
+//    "huobi"
+  ]
+}
