@@ -7,21 +7,20 @@ function capitalize(string) {
 let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time))
 
 async function main() {
-    result = {}
-    config.tokens.forEach(token => {
-        result[token] = {total: 0, count: 0}
-        config.exchanges.forEach(async exchange => {
-            func = 'getPriceFrom' + capitalize(exchange)
-            let price = await exchangeHelper[func](token)
-            if (price !== null) {
-                result[token].total += price
-                result[token].count += 1
-            }
-            console.log(token, exchange, price)
+    console.log('start', new Date())
+    let tokenMap = config.tokens.map(async token => {
+        let exchangeMap = config.exchanges.map(async exchange => {
+            let func = 'getPriceFrom' + capitalize(exchange)
+            return await exchangeHelper[func](token)
         })
+        let data = await Promise.all(exchangeMap)
+        return {token: token, price: data}
     })
-    await sleep(3000)
-    console.log(result)
+    let result = await Promise.all(tokenMap)
+    result.forEach(item => {
+        console.log(item.token, (item.price.reduce((a, b) => a + b, 0)) / item.price.filter(x => x !== null).length)
+    })
+    console.log('end', new Date())
 }
 
 main()
