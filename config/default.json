@@ -1,10 +1,34 @@
 {
   "tokens": [
-//    "btc"
     "btc", "eth", "bnb", "ada", "xrp", "doge", "dot", "uni", "sol", "bch", "ltc", "link", "matic"
   ],
   "exchanges": [
     "binance", "coinbase", "bitfinex", "bitmart", "okex", "ftx", "huobi"
-//    "huobi"
-  ]
+  ],
+  "rpc": {
+    "eth": {
+      "http": "https://stoic-dijkstra:omen-dugout-ditto-tartly-lyrics-ashy@nd-676-121-911.p2pify.com"
+    },
+    "bsc": {
+      "http": "https://bsc-dataseed.binance.org/"
+    },
+    "tomo": {
+      "http": "https://rpc.tomochain.com"
+    },
+    "ftm": {
+      "http": "https://rpcapi.fantom.network/"
+    },
+    "matic": {
+      "http": "https://rpc-mainnet.maticvigil.com/"
+    },
+    "heco": {
+      "http": "https://http-mainnet.hecochain.com"
+    },
+    "xdai": {
+      "http": "https://rpc.xdaichain.com/"
+    },
+    "avax": {
+      "http": "https://api.avax.network/ext/bc/C/rpc"
+    }
+  }
 }
