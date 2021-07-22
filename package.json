@@ -9,9 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@truffle/hdwallet-provider": "^1.4.1",
     "axios": "^0.21.1",
     "bignumber.js": "^9.0.1",
     "config": "^3.3.6",
+    "dotenv": "^10.0.0",
     "web3": "^1.4.0"
   }
 }
