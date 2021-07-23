@@ -193,13 +193,14 @@ let ChainLinkHelper = {
         let web3 = await new Web3(new Web3.providers.HttpProvider(config.rpc.eth.http))
         let tokenAddress = tokens[token.toLowerCase()]
         if (!tokenAddress) {
-            return null
+            return {price: null, timestamp: null}
         }
         let contract = await new web3.eth.Contract(ABI, tokenAddress)
         let decimals = await contract.methods.decimals().call()
         let lastRoundData = await contract.methods.latestRoundData().call()
         let price = new BigNumber(lastRoundData.answer)
-        return price.div(10**decimals).toNumber()
+        let timestamp = lastRoundData.updatedAt
+        return {price: price.div(10**decimals).toNumber(), timestamp: timestamp}
     }
 }
 

@@ -28,7 +28,7 @@ let ExchangeHelper = {
 
         let price = await axios.get(url)
         let tickers = price.data.data
-        if (tickers.length === 0) {
+        if (tickers.tickers.length === 0) {
             return null
         }
         return parseFloat(tickers.tickers[0].last_price)
