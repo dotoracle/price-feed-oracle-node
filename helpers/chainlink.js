@@ -190,7 +190,7 @@ const ABI = [
 
 let ChainLinkHelper = {
     getTokenPrice: async (token) => {
-        let web3 = await new Web3(new Web3.providers.HttpProvider(config.rpc.eth.http))
+        let web3 = await new Web3(new Web3.providers.HttpProvider(config.rpc['1'].http))
         let tokenAddress = tokens[token.toLowerCase()]
         if (!tokenAddress) {
             return {price: null, timestamp: null}
