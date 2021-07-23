@@ -1,12 +1,9 @@
-const argv = process.argv.slice(2)
-const data = argv[0]
-const fileName = "signature" + data + ".json"
 const { exec } = require("child_process");
 require('dotenv').config()
-const smEndPoint = process.env.SM_ENDPOINT
-const keyStoreFile = "keys.store"
 
-function startMPCSign() {
+function startMPCSign(smEndPoint, keyStoreFile, data, cb) {
+    const fileName = "signature" + data + ".json"
+    console.log("Starting MPC")
     exec(`./gg18_sign_client ${smEndPoint} ${keyStoreFile} "${data}" ${fileName}`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
@@ -17,7 +14,11 @@ function startMPCSign() {
             return;
         }
         console.log(`Done: Signature saved in file ${fileName}`);
+        let sigJson = require(`./${fileName}`)
+        cb({r: sigJson[1], s: sigJson[3], v: sigJson[5]})
     });
 }
 
-startMPCSign()
+module.exports = {
+    startMPCSign
+}
