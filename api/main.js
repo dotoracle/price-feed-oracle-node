@@ -19,6 +19,10 @@ router.get('/tokens/:token',[
     let token = req.params.token.toLowerCase()
     let price = await db.TokenPrice.findOne({token: token})
     let history = await db.AvgPriceHistory.find({token: token}).sort({updateAt: -1}).limit(1440)
+    let historyArr = []
+    for (let i = 0; i < history.length; i++) {
+        historyArr.push(history[i].price)
+    }
     let lastPrice = await db.PriceHistory.find({token: token}).sort({timestamp: -1}).limit(1)
     let allExchangePrice = []
     if (lastPrice.length > 0) {
@@ -26,8 +30,8 @@ router.get('/tokens/:token',[
     }
 
     return res.json({
-        price: price,
-        history: history,
+        price: price.price,
+        history: historyArr,
         allExchangePrice: allExchangePrice,
     })
 })
