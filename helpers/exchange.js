@@ -25,10 +25,9 @@ let ExchangeHelper = {
     },
     getPriceFromBitmart: async (token) => {
         url = `https://api-cloud.bitmart.com/spot/v1/ticker?symbol=${token.toUpperCase()}_USDT`
-        console.log('url', url)
         let price = await axios.get(url)
         let tickers = price.data.data
-        if (tickers.length === 0) {
+        if (tickers.tickers.length === 0) {
             return null
         }
         return parseFloat(tickers.tickers[0].last_price)

@@ -1,13 +1,43 @@
 {
+  "server": {
+    "host": "0.0.0.0",
+    "port": 4000
+  },
+  "logs": {
+    "level": "debug"
+  },
+  "db": {
+    "uri": "mongodb://localhost:27017/dtoTokenPrice"
+  },
   "tokens": [
-    "btc", "eth", "bnb", "ada", "etc", "xrp", "doge", "dot", "uni", "sol", "bch", "ltc", "link", "matic"
+    "btc",
+    "eth",
+    "bnb",
+    "ada",
+    "etc",
+    "xrp",
+    "doge",
+    "dot",
+    "uni",
+    "sol",
+    "bch",
+    "ltc",
+    "link",
+    "matic"
   ],
   "exchanges": [
-    "binance", "coinbase", "bitfinex", "okex", "ftx", "huobi"
+    "binance",
+    "coinbase",
+    "bitfinex",
+    "okex",
+    "ftx",
+    "huobi"
   ],
   "contracts": {
     "multipricefeed": {
-      "97": ["0x8ffE8F68833aF4D07a8fdEdB32F204a4201ba21D"]
+      "97": [
+        "0x8ffE8F68833aF4D07a8fdEdB32F204a4201ba21D"
+      ]
     }
   },
   "rpc": {
@@ -36,25 +66,25 @@
       "http": "https://api.avax.network/ext/bc/C/rpc"
     },
     "42": {
-			"http": "https://kovan.infura.io/v3/468031fc706e435eb5f32f89a4077d56"
-		},
-		"89": {
-			"http": "https://rpc.testnet.tomochain.com"
-		},
-		"80001": {
-			"http": "https://rpc-mumbai.maticvigil.com/"
-		},
-		"97": {
-			"http": "https://data-seed-prebsc-1-s1.binance.org:8545/"
-		},
-		"4002": {
-			"http": "https://rpc.testnet.fantom.network/"
-		},
-		"1287": {
-			"http": "https://rpc.testnet.moonbeam.network"
-		},
-		"43113": {
-			"http": "https://api.avax-test.network/ext/bc/C/rpc"
+      "http": "https://kovan.infura.io/v3/468031fc706e435eb5f32f89a4077d56"
+    },
+    "89": {
+      "http": "https://rpc.testnet.tomochain.com"
+    },
+    "80001": {
+      "http": "https://rpc-mumbai.maticvigil.com/"
+    },
+    "97": {
+      "http": "https://data-seed-prebsc-1-s1.binance.org:8545/"
+    },
+    "4002": {
+      "http": "https://rpc.testnet.fantom.network/"
+    },
+    "1287": {
+      "http": "https://rpc.testnet.moonbeam.network"
+    },
+    "43113": {
+      "http": "https://api.avax-test.network/ext/bc/C/rpc"
     }
   },
   "oracles": {
