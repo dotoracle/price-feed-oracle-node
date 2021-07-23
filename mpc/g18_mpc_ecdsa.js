@@ -1,4 +1,4 @@
-const argv = process.env.argv.slice(2)
+const argv = process.argv.slice(2)
 const data = argv[0]
 const fileName = "signature" + data + ".json"
 const { exec } = require("child_process");
