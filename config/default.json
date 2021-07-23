@@ -1,9 +1,21 @@
 {
+  "server": {
+    "host": "0.0.0.0",
+    "port": 4000
+  },
+  "logs": {
+    "level": "debug"
+  },
+  "db": {
+    "uri": "mongodb://localhost:27017/dtoTokenPrice"
+  },
   "tokens": [
-    "btc", "eth", "bnb", "ada", "xrp", "doge", "dot", "uni", "sol", "bch", "ltc", "link", "matic"
+    "btc", "eth", "bnb", "ada", "etc", "xrp", "doge", "dot", "uni", "sol", "bch", "ltc", "link", "matic"
+//    "xrp"
   ],
   "exchanges": [
     "binance", "coinbase", "bitfinex", "bitmart", "okex", "ftx", "huobi"
+//    "bitmart"
   ],
   "rpc": {
     "eth": {
