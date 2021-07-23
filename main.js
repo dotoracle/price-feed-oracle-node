@@ -9,6 +9,7 @@ const Signer = require('./oracles/signPriceData')
 const chainIdList = Object.keys(multipricefeedConfig)
 const contractMap = {}  //contract list based on chain id
 chainIdList.forEach(c => contractMap[c] = multipricefeedConfig[c])
+const g18MPC = require("./mpc/g18_mpc_ecdsa")
 //chainId => {web3, [contract object, token list, description]}
 const priceFeedInfoMap = {}
 const period = 8 * 60;  //8 mionutes
@@ -60,19 +61,21 @@ async function main() {
                 let nextRound = currentRound + 1
                 let updatedAt = parseInt(latestRoundInfo.updatedAt)
                 let now = Math.floor(Date.now() / 1000)
-                if (now - updatedAt < period) continue;
                 updatedAt = now > updatedAt ? now : updatedAt
                 let deadline = updatedAt + 200//valid til 200s
 
                 console.log('prices', prices)
-                let sigs = Signer.signPriceData(nextRound, ct.options.address, prices, deadline, tokens, description)
-                let r = sigs.map(e => e.r)
-                let s = sigs.map(e => e.s)
-                let v = sigs.map(e => e.v)
-
-                console.log('submitting')
-                await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
-                console.log('success')
+                let messageForMPC = Signer.computeMessageHashForMPC(nextRound, ct.options.address, prices, deadline, tokens, description)
+                g18MPC.startMPCSign(process.env.SM_ENDPOINT, "keys.store", messageForMPC.slice(2), function(sig) {
+                    let r = sig.r
+                    let s = sig.s
+                    let v = parseInt(sig.v) + 27
+    
+                    console.log('submitting')
+                    await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
+                    console.log('success')
+                })
+                
             }
         }
     } catch (e) {
