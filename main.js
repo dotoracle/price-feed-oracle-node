@@ -66,7 +66,7 @@ async function main() {
 
                 console.log('prices', prices)
                 let messageForMPC = Signer.computeMessageHashForMPC(nextRound, ct.options.address, prices, deadline, tokens, description)
-                g18MPC.startMPCSign(process.env.SM_ENDPOINT, "keys.store", messageForMPC.slice(2), function(sig) {
+                g18MPC.startMPCSign(process.env.SM_ENDPOINT, "keys.store", messageForMPC.slice(2), async function(sig) {
                     let r = sig.r
                     let s = sig.s
                     let v = parseInt(sig.v) + 27
