@@ -3,7 +3,10 @@
 const pipe = require('it-pipe')
 const logger = require("../helpers/logger")
 const keccak256 = require('keccak256')
+const Signer = require('../oracles/signPriceData')
 const BAN_THRESHOLD = 3
+const config = require('config')
+const oracleAddresses = config.get('oracles.addresses')
 
 function messageHash(m) {
   return keccak256(m)
@@ -12,7 +15,16 @@ function getValidPeerList(nm) {
   return Object.keys(nm.peerMap).filter(p => !isBanned(nm, p))
 }
 function isBanned(nm, peerId) {
-  return nm.banScore[peerId] && nm.banScore[peerId] > BAN_THRESHOLD ? true:false;
+  return nm.banScore[peerId] && nm.banScore[peerId] > BAN_THRESHOLD ? true : false;
+}
+
+function increaseBanScore(nm, peerId) {
+  let currentBanScore = nm.banScore[peerId] ? nm.banScore[peerId] : 0;
+  nm.banScore[peerId] = currentBanScore + 1;
+  logger.warn(`Peer ${peerId} bannedScore ${nm.banScore[peerId]}`)
+  if (isBanned(nm, peerId)) {
+    delete nm.banScore[peerId];
+  }
 }
 
 async function sendToPeer(nm, peerId, protocols, message) {
@@ -20,19 +32,14 @@ async function sendToPeer(nm, peerId, protocols, message) {
     const { stream } = await nm.node.dialProtocol(peerId, protocols)
     logger.info('Sending to %s', peerId)
     await pipe(
-      Array.isArray(message)? message : [message],
+      Array.isArray(message) ? message : [message],
       stream
     )
     logger.info('success')
   } catch (e) {
     logger.error('Failed to broadcast to %s', peerId)
     //increase banscore
-    let currentBanScore = nm.banScore[peerId] ? nm.banScore[peerId] : 0;
-    nm.banScore[peerId] = currentBanScore + 1;
-    logger.warn(`Peer ${peerId} bannedScore ${nm.banScore[peerId]}`)
-    if (isBanned(nm, peerId)) {
-      delete nm.banScore[peerId];
-    }
+    increaseBanScore(nm, peerId)
   }
 }
 
@@ -46,20 +53,33 @@ async function sendToPeers(nm, peerList, protocols, message) {
 async function sendToAllPeers(nm, protocols, message) {
   sendToPeers(nm, getValidPeerList(nm), protocols, message)
 }
+
+async function verifyMessage(msg) {
+  let recoveredAddress = Signer.recoverSigner(msg)
+  if (!recoveredAddress) return false
+  let lowerCases = oracleAddresses.map(o => o.toLowerCase())
+  return lowerCases.includes(recoveredAddress.toLowerCase())
+}
+
+//source stream is created by web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [roundId, priceFeedAddress, prices, deadline, tokenList, description])
 async function startPeerService(nm, protocol) {
   nm.node.handle(protocol, ({ stream }) => {
     pipe(
       stream,
       async function (source) {
-        //if (!nm.streams[stream]) nm.streams[stream] = true
         for await (const msg of source) {
+          console.log(`stream ${JSON.stringify(stream)}`)
           let msgString = msg.toString()
-
           //let msgHash = messageHash(msgString)
           if (!nm.seenMessages[msgString]) {
-            logger.info(`receving ${msgString}`)
-            nm.seenMessages[msgString] = true
-            sendToAllPeers(nm, [protocol], msgString)
+            if (verifyMessage(msg)) {
+              logger.info(`receving ${msgString}`)
+              nm.seenMessages[msgString] = true
+              sendToAllPeers(nm, [protocol], msgString)
+            } else {
+              //increase banscore
+              //increaseBanScore(nm, )
+            }
           }
         }
       }
