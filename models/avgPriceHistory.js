@@ -5,6 +5,6 @@ const AvgPriceHistory = new Schema({
     token: { type: String, index: true },
     price: Number,
     timestamp: { type: Number, index: true },
-}, { timestamps: false, v: false })
+}, { timestamps: false, versionKey: false })
 
 module.exports = mongoose.model('AvgPriceHistory', AvgPriceHistory)

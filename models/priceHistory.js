@@ -6,6 +6,6 @@ const PriceHistory = new Schema({
     exchange: { type: String, index: true },
     price: Number,
     timestamp: { type: Number, index: true },
-}, { timestamps: false, v: false })
+}, { timestamps: false, versionKey: false })
 
 module.exports = mongoose.model('PriceHistory', PriceHistory)
