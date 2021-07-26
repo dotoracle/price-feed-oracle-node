@@ -66,7 +66,7 @@ function verifyMessage(msg) {
 }
 
 //source stream is created by web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [roundId, priceFeedAddress, prices, deadline, tokenList, description])
-async function startPeerService(nm, protocol, cb) {
+async function startPeerService(nm, protocol, receiveAndBroadcast) {
   nm.node.handle(protocol, ({ stream }) => {
     pipe(
       stream,
@@ -79,17 +79,17 @@ async function startPeerService(nm, protocol, cb) {
             if (verifiedRet) {
               logger.info(`receving data from ${verifiedRet.signer}`)
               nm.seenMessages[msgString] = true
-              if (!cb) {
+              if (!receiveAndBroadcast) {
                 sendToAllPeers(nm, [protocol], msgString)
               } else {
-                cb([protocol], msgString)
+                receiveAndBroadcast([protocol], msgString)
               }
             } else {
               logger.warn(`Unverified data ${msgString}`)
               //increase banscore
               //increaseBanScore(nm, )
             }
-          }
+          } 
         }
       }
     )
