@@ -17,8 +17,8 @@ module.exports = {
   recoverSigner: function (data) {
     //data include encoded price data and signature of oracle
     //signature is the last 65 bytes [r,s,v]
-    if (data.slice(0, 2) != "0x") return null;
-    if (data.length < 2 + 65 * 2) return null;
+    if (data.slice(0, 2) != "0x") return 'failed';
+    if (data.length < 2 + 65 * 2) return 'failed';
     let sig = data.slice(data.length - 65 * 2);
     let r = "0x" + sig.slice(0, 64);
     let s = "0x" + sig.slice(64, 128)
@@ -31,7 +31,7 @@ module.exports = {
     // Signed Hash
     var recoveredPub = ethUtil.ecrecover(messageHashx, v, Buffer.from(r.replace("0x", ""), "hex"), Buffer.from(s.replace("0x", ""), "hex"))
     var recoveredAddress = ethUtil.pubToAddress(recoveredPub).toString("hex")
-    return "0x" + recoveredAddress
+    return {address: "0x" + recoveredAddress.toLowerCase(), messageHash: messageHash}
   },
   signMessage: function (data) {
     let messageHash = web3.utils.sha3(data);

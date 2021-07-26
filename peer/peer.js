@@ -7,6 +7,7 @@ const Signer = require('../oracles/signPriceData')
 const BAN_THRESHOLD = 3
 const config = require('config')
 const oracleAddresses = config.get('oracles.addresses')
+const priceFeed = require("../jobs/pricefeed")
 
 function messageHash(m) {
   return keccak256(m)
@@ -54,29 +55,37 @@ async function sendToAllPeers(nm, protocols, message) {
   sendToPeers(nm, getValidPeerList(nm), protocols, message)
 }
 
-async function verifyMessage(msg) {
+function verifyMessage(msg) {
   let recoveredAddress = Signer.recoverSigner(msg)
-  if (!recoveredAddress) return false
+  if (!recoveredAddress || !recoveredAddress.address) {
+    logger.warn('Cannot verify received data')
+    return null
+  }
   let lowerCases = oracleAddresses.map(o => o.toLowerCase())
-  return lowerCases.includes(recoveredAddress.toLowerCase())
+  return {result: lowerCases.includes(recoveredAddress.address.toLowerCase()), signer: recoveredAddress.address.toLowerCase(), messageHash: recoveredAddress.messageHash}
 }
 
 //source stream is created by web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [roundId, priceFeedAddress, prices, deadline, tokenList, description])
-async function startPeerService(nm, protocol) {
+async function startPeerService(nm, protocol, cb) {
   nm.node.handle(protocol, ({ stream }) => {
     pipe(
       stream,
       async function (source) {
         for await (const msg of source) {
-          console.log(`stream ${JSON.stringify(stream)}`)
           let msgString = msg.toString()
           //let msgHash = messageHash(msgString)
           if (!nm.seenMessages[msgString]) {
-            if (verifyMessage(msg)) {
-              logger.info(`receving ${msgString}`)
+            let verifiedRet = verifyMessage(msgString)
+            if (verifiedRet) {
+              logger.info(`receving data from ${verifiedRet.signer}`)
               nm.seenMessages[msgString] = true
-              sendToAllPeers(nm, [protocol], msgString)
+              if (!cb) {
+                sendToAllPeers(nm, [protocol], msgString)
+              } else {
+                cb([protocol], msgString)
+              }
             } else {
+              logger.warn(`Unverified data ${msgString}`)
               //increase banscore
               //increaseBanScore(nm, )
             }
@@ -114,6 +123,8 @@ async function startPeerService(nm, protocol) {
   nm.node.on('peer:discovery', (peerId) => {
     logger.info(`Peer discovered: ${peerId.toB58String()}`)
   })
+
+  nm.priceFeedConfig = await priceFeed.getConfigData()
 }
 
 function createNodeManager(node) {
@@ -123,7 +134,8 @@ function createNodeManager(node) {
     peerMap: {},
     banScore: {},
     streams: {},
-    multiaddrs: []
+    multiaddrs: [],
+    approvedMessages: {}
   }
 }
 

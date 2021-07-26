@@ -10,10 +10,18 @@ const Bootstrap = require('libp2p-bootstrap')
 const config = require('config')
 const PubsubPeerDiscovery = require('libp2p-pubsub-peer-discovery')
 const relayMultiaddrs = config.get("peerBootstrap")
+const Signer = require('../oracles/signPriceData')
+const priceFeed = require('../jobs/pricefeed')
 
 const peerService = require('./peer')
 const logger = require("../helpers/logger")
 const protocols = '/pricefeed'
+
+let metadata = {
+    chainId: 97,
+    contractAddress: "0x8ffE8F68833aF4D07a8fdEdB32F204a4201ba21D"
+}
+
 const createNode = async (bootstrapers) => {
     const node = await Libp2p.create({
         addresses: {
@@ -50,10 +58,28 @@ async function startOracleNode() {
     ])
 
     let nm = peerService.createNodeManager(node)
+    nm.approversMap = {}    //messageHash => approver
 
-    await peerService.startPeerService(nm, protocols)
+    await peerService.startPeerService(nm, protocols, async function(pros, receivedData) {
+        let verified = await priceFeed.validateOracleData(receivedData, metadata, nm.priceFeedConfig)
+        if (verified) {
+            peerService.sendToAllPeers(nm, pros, receivedData)
 
-        ;[node].forEach((node, index) => logger.info(`Node ${index} starting with id: ${node.peerId.toB58String()}`))
+            let signerData = Signer.recoverSigner(receivedData)
+            if (!nm.approvedMessages[signerData.messageHash]) {
+                nm.approvedMessages[signerData.messageHash] = []
+            }
+            if (!nm.approvedMessages[signerData.messageHash].includes(signerData.address)) {
+                nm.approvedMessages[signerData.messageHash].push(signerData.address)
+                console.log('current num signer ', signerData.messageHash, nm.approvedMessages[signerData.messageHash].length)
+                if (priceFeed.signersSufficient(metadata, nm.priceFeedConfig, nm.approvedMessages[signerData.messageHash].length)) {
+                    logger.info('Consensus agreement, it is now time to make MPC signature')
+                }
+            }
+        }
+    })
+
+    ;[node].forEach((node, index) => logger.info(`Node ${index} starting with id: ${node.peerId.toB58String()}`))
     await Promise.all([
         node.start(),
     ])
@@ -64,10 +90,14 @@ async function startOracleNode() {
     //test data
     var i = 0
     setInterval(async function () {
-        let message = "hello" + i + node.peerId.toB58String()
+        let data = await priceFeed.getLatestDataToSign(metadata, nm.priceFeedConfig)
+
+        let signed = Signer.signMessage(data)
+        let message = signed.combined
+        nm.seenMessages[message] = true
         await peerService.sendToAllPeers(nm, [protocols], message)
         i++;
-    }, 10000)
+    }, 30000)
 
 }
 startOracleNode()
