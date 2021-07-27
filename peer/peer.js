@@ -44,11 +44,56 @@ async function sendToPeer(nm, peerId, protocols, message) {
   }
 }
 
+/**
+ * Writes a given `message` over the given `stream`.
+ * @param {String} message The message to send over `stream`
+ * @param {Stream} stream A stream over the muxed Connection to our peer
+ */
+ async function send (message, stream) {
+  try {
+    await pipe(
+      Array.isArray(message) ? message : [message],
+      stream,
+      async function (source) {
+        for await (const message of source) {
+          logger.info(`Sent: ${message}`)
+        }
+      }
+    )
+    // await pipe(
+    //   [],
+    //   stream
+    // )
+  } catch (err) {
+    logger.error(err)
+  }
+}
+
 async function sendToPeers(nm, peerList, protocols, message) {
-  let l = peerList.map(async peerId => {
-    return await sendToPeer(nm, peerId, protocols, message)
+  let l = peerList.forEach(async peerId => {
+    sendToPeer(nm, peerId, protocols, message)
   })
-  Promise.all(l)
+  // Promise.all(l)
+  logger.info("peers %s", protocols[0])
+  nm.node.peerStore.peers.forEach(async (peer) => {
+    // if (!peer.protocols.includes(protocols)) {
+    //   logger.info('no match peer %s', protocols)
+    //   return
+    // }
+    const connection = nm.node.connectionManager.get(peer.id)
+    if (!connection) {
+      logger.warn("not found connection for peer %s", peer.id)
+      return
+    }
+
+    try {
+      const { stream } = await connection.newStream(protocols)
+      await send(message, stream)
+      logger.info('successfully sent to %s', peer.id.toB58String())
+    } catch (err) {
+      logger.error('Could not negotiate kickoff protocol stream with peer %s %s', err, peer.id.toB58String())
+    }
+  })
 }
 
 async function sendToAllPeers(nm, protocols, message) {
@@ -62,37 +107,39 @@ function verifyMessage(msg) {
     return null
   }
   let lowerCases = oracleAddresses.map(o => o.toLowerCase())
-  return {result: lowerCases.includes(recoveredAddress.address.toLowerCase()), signer: recoveredAddress.address.toLowerCase(), messageHash: recoveredAddress.messageHash}
+  return { result: lowerCases.includes(recoveredAddress.address.toLowerCase()), signer: recoveredAddress.address.toLowerCase(), messageHash: recoveredAddress.messageHash }
 }
 
 //source stream is created by web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [roundId, priceFeedAddress, prices, deadline, tokenList, description])
 async function startPeerService(nm, protocol, receiveAndBroadcast) {
-  nm.node.handle(protocol, ({ stream }) => {
-    pipe(
-      stream,
-      async function (source) {
-        for await (const msg of source) {
-          let msgString = msg.toString()
-          //let msgHash = messageHash(msgString)
-          if (!nm.seenMessages[msgString]) {
-            let verifiedRet = verifyMessage(msgString)
-            if (verifiedRet) {
-              logger.info(`receving data from ${verifiedRet.signer}`)
-              nm.seenMessages[msgString] = true
-              if (!receiveAndBroadcast) {
-                sendToAllPeers(nm, [protocol], msgString)
+  nm.node.handle(protocol, async ({ stream }) => {
+    try {
+      await pipe(
+        stream,
+        async function (source) {
+          for await (const msg of source) {
+            let msgString = msg.toString()
+            if (!nm.seenMessages[msgString]) {
+              let verifiedRet = verifyMessage(msgString)
+              if (verifiedRet) {
+                logger.info(`receving data from ${verifiedRet.signer}`)
+                nm.seenMessages[msgString] = true
+                if (!receiveAndBroadcast) {
+                  sendToAllPeers(nm, protocol, msgString)
+                } else {
+                  receiveAndBroadcast([protocol], msgString)
+                }
               } else {
-                receiveAndBroadcast([protocol], msgString)
+                logger.warn(`Unverified data ${msgString}`)
               }
-            } else {
-              logger.warn(`Unverified data ${msgString}`)
-              //increase banscore
-              //increaseBanScore(nm, )
             }
-          } 
+          }
         }
-      }
-    )
+      )
+      await pipe([], stream)
+    } catch (err) {
+      logger.error(err)
+    }
   })
 
   nm.node.handle('/peerbinding', ({ stream }) => {

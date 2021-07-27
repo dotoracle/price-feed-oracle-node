@@ -103,7 +103,7 @@ async function startOracleNode() {
     var i = 0
     setInterval(async function () {
         let data = await priceFeed.getLatestDataToSign(metadata, nm.priceFeedConfig)
-
+        logger.info('about to send %s', data)
         let signed = Signer.signMessage(data)
         let message = signed.combined
         nm.seenMessages[message] = true
