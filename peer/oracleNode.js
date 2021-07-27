@@ -19,7 +19,7 @@ const protocols = '/pricefeed'
 
 let metadata = {
     chainId: 97,
-    contractAddress: "0x8ffE8F68833aF4D07a8fdEdB32F204a4201ba21D"
+    contractAddress: "0xb4251ff3807b059d9d092608B8b412BBC875fB60"
 }
 
 const createNode = async (bootstrapers) => {
@@ -103,6 +103,7 @@ async function startOracleNode() {
     var i = 0
     setInterval(async function () {
         let data = await priceFeed.getLatestDataToSign(metadata, nm.priceFeedConfig)
+        console.log(data)
         let signed = Signer.signMessage(data)
         let message = signed.combined
         nm.seenMessages[message] = true

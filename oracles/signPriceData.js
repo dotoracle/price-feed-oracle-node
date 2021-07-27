@@ -34,7 +34,7 @@ module.exports = {
     }
     return web3.eth.accounts.privateKeyToAccount(k).address.toLowerCase()
   },
-  signMessage: function (data) {
+  signMessage: function (data) {  //sign message for verifying the source of data verification
     let messageHash = web3.utils.sha3(data);
     var messageHashx = Buffer.from(messageHash.replace("0x", ""), "hex")
 
@@ -43,6 +43,13 @@ module.exports = {
     // Signed Hash
     var sig = ethUtil.ecsign(messageHashx, pKeyx)
     return {sig: sig, combined: `${data}${sig.r.toString('hex')}${sig.s.toString('hex')}${sig.v.toString('16')}`}
+  },
+  getHashForMPCWithHash: function(msgHash) {
+    return web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", msgHash)
+  },
+  getHashForMPCWithData: function(data) {
+    let msgHash = web3.utils.sha3(data);
+    return web3.utils.soliditySha3("\x19Ethereum Signed Message:\n32", msgHash)
   },
   extractRawData: function (data) {
     //data include encoded price data and signature of oracle

@@ -5,7 +5,7 @@ const staticWeb3 = new Web3()
 const HDWalletProvider = require('@truffle/hdwallet-provider')
 const exchangeHelper = require('../helpers/readPrice')
 const multipricefeedConfig = config.get("contracts.multipricefeed")
-const MultiPriceFeedABI = require('../abi/MultiPriceFeedOracle.json')
+const MultiPriceFeedABI = require('../abi/MultiPriceFeedOracleV2.json')
 const threshold = 10    //1%
 const db = require('../models');
 const logger = require('../helpers/logger');
@@ -84,7 +84,7 @@ async function validateOracleData(data, metadata, configData) {
         return false;
     }
     if (nextRound != decoded.roundId) {
-        logger.warn('Round invalid')
+        logger.warn('Round invalid %d', nextRound)
         return false;
     }
 
