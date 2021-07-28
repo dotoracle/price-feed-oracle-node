@@ -180,7 +180,12 @@ async function submitTransaction(metadata, configData, oracleData, r, s, v) {
         let idx = configData[chainId].contracts.findIndex(e => e.options.address.toLowerCase() == contractAddress.toLowerCase())
 
         let ct = configData[chainId].contracts[idx]
-        await ct.methods.submit(decoded.roundId, decoded.prices, decoded.deadline, r, s, v).send({ from: configData.ACCOUNT, gas: 2000000, gasPrice: 20000000000 })
+
+        let latestRoundInfo = await ct.methods.latestRoundInfo().call()
+        let currentRound = parseInt(latestRoundInfo.roundId)
+        if (currentRound != parseInt(decoded.roundId)) {
+            await ct.methods.submit(decoded.roundId, decoded.prices, decoded.deadline, r, s, v).send({ from: configData.ACCOUNT, gas: 2000000, gasPrice: 20000000000 })
+        }
     } catch (e) {
         logger.error('Error in submitting tx %s', e);
     }

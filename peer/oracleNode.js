@@ -98,10 +98,16 @@ async function startOracleNode() {
                         let s = sig.s
                         let v = parseInt(sig.v) + 27
                         try {
-                            logger.info('submitting signature %s', sig)
-                            await priceFeed.submitTransaction(metadata, nm.priceFeedConfig, signerData.rawData, "0x" + r, "0x" + s, v)
-                            //await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
-                            logger.info('success')
+                            let random = Math.floor(Math.random() * 10)
+                            let waitTime = random * 5
+                            logger.info("Waiting for %s second before submit", waitTime)
+                            setTimeout(async() => {
+                                logger.info('submitting signature %s', sig)
+                                await priceFeed.submitTransaction(metadata, nm.priceFeedConfig, signerData.rawData, "0x" + r, "0x" + s, v)
+                                //await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
+                                logger.info('success')
+                            }, waitTime * 1000)
+                            
                         } catch (e) {
                             logger.error(e)
                         }
