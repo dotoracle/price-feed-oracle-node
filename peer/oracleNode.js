@@ -91,13 +91,13 @@ async function startOracleNode() {
                     MPC.startMPCSign(config.sm_endpoint, "keys.store", hashForMPC.slice(2), async function (sig) {
                         let r = sig.r
                         let s = sig.s
-                        let v = parseInt(sig.v) 
+                        let v = parseInt(sig.v) + 27
                         try {
-                            console.log('submitting')
+                            logger.info('submitting signature %s', sig)
                             await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
-                            console.log('success')
+                            logger.info('success')
                         } catch (e) {
-                            //avoid tx revert in case duplicate tx
+                            logger.error(e)
                         }
                     })
                 }
