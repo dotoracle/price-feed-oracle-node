@@ -126,7 +126,7 @@ async function startOracleNode() {
         console.log(data.data)
         let now = Math.floor(Date.now() / 1000)
         let signed = Signer.signMessage(data.data)
-        if (data.lastUpdated + 8*60 < now) return; 
+        if (data.lastUpdated + 10*60 < now) return; 
         let message = signed.combined
         nm.seenMessages[message] = true
         await peerService.sendToAllPeers(nm, [protocols], message)
