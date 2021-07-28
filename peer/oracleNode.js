@@ -87,8 +87,8 @@ async function startOracleNode() {
 
                 if (priceFeed.signersSufficient(metadata, nm.priceFeedConfig, nm.approvedMessages[signerData.messageHash].length)) {
                     logger.info('Consensus agreement, it is now time to make MPC signature')
-
-                    MPC.startMPCSign(config.sm_endpoint, "keys.store", signerData.messageHash.slice(2), async function (sig) {
+                    let hashForMPC = Signer.getHashForMPCWithHash(signerData.messageHash)
+                    MPC.startMPCSign(config.sm_endpoint, "keys.store", hashForMPC.slice(2), async function (sig) {
                         let r = sig.r
                         let s = sig.s
                         let v = parseInt(sig.v) 
