@@ -91,7 +91,7 @@ async function startOracleNode() {
                     MPC.startMPCSign(config.sm_endpoint, "keys.store", signerData.messageHash.slice(2), async function (sig) {
                         let r = sig.r
                         let s = sig.s
-                        let v = parseInt(sig.v) + 27
+                        let v = parseInt(sig.v) 
                         try {
                             console.log('submitting')
                             await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
