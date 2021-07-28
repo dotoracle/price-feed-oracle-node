@@ -4,7 +4,7 @@ require('dotenv').config()
 function startMPCSign(smEndPoint, keyStoreFile, data, cb) {
     const fileName = "signature" + data + ".json"
     console.log("Starting MPC")
-    exec(`./mpc/gg18_sign_client ${smEndPoint} ${keyStoreFile} "${data}" ${fileName}`, (error, stdout, stderr) => {
+    exec(`./mpc/gg18_sign_client ${smEndPoint} mpc/${keyStoreFile} "${data}" ${fileName}`, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;
