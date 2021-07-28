@@ -182,7 +182,8 @@ function createNodeManager(node) {
     banScore: {},
     streams: {},
     multiaddrs: [],
-    approvedMessages: {}
+    approvedMessages: {}, 
+    mpcState: {}
   }
 }
 

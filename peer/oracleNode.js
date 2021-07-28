@@ -87,6 +87,10 @@ async function startOracleNode() {
 
                 if (priceFeed.signersSufficient(metadata, nm.priceFeedConfig, nm.approvedMessages[signerData.messageHash].length)) {
                     logger.info('Consensus agreement, it is now time to make MPC signature')
+                    if (nm.mpcState[signerData.messageHash]) {
+                        logger.info('An instance of MPC is already running for this message')
+                        return
+                    }
                     let hashForMPC = Signer.getHashForMPCWithHash(signerData.messageHash)
                     MPC.startMPCSign(config.sm_endpoint, "keys.store", hashForMPC.slice(2), async function (sig) {
                         let r = sig.r
@@ -94,7 +98,7 @@ async function startOracleNode() {
                         let v = parseInt(sig.v) + 27
                         try {
                             logger.info('submitting signature %s', sig)
-                            await priceFeed.submitTransaction(metadata, nm.priceFeedConfig, signerData.rawData, r, s, v)
+                            await priceFeed.submitTransaction(metadata, nm.priceFeedConfig, signerData.rawData, "0x" + r, "0x" + s, v)
                             //await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
                             logger.info('success')
                         } catch (e) {
