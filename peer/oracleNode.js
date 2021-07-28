@@ -123,8 +123,10 @@ async function startOracleNode() {
     var i = 0
     setInterval(async function () {
         let data = await priceFeed.getLatestDataToSign(metadata, nm.priceFeedConfig)
-        console.log(data)
-        let signed = Signer.signMessage(data)
+        console.log(data.data)
+        let now = Math.floor(Date.now() / 1000)
+        let signed = Signer.signMessage(data.data)
+        if (data.lastUpdated + 8*60 < now) return; 
         let message = signed.combined
         nm.seenMessages[message] = true
         await peerService.sendToAllPeers(nm, [protocols], message)

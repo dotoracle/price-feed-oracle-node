@@ -22,3 +22,5 @@ function startMPCSign(smEndPoint, keyStoreFile, data, cb) {
 module.exports = {
     startMPCSign
 }
+
+
