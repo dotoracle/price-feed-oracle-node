@@ -91,6 +91,7 @@ async function startOracleNode() {
                         logger.info('An instance of MPC is already running for this message')
                         return
                     }
+                    nm.mpcState[signerData.messageHash] = true
                     let hashForMPC = Signer.getHashForMPCWithHash(signerData.messageHash)
                     MPC.startMPCSign(config.sm_endpoint, "keys.store", hashForMPC.slice(2), async function (sig) {
                         let r = sig.r
