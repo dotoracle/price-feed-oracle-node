@@ -94,7 +94,8 @@ async function startOracleNode() {
                         let v = parseInt(sig.v) + 27
                         try {
                             logger.info('submitting signature %s', sig)
-                            await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
+                            await priceFeed.submitTransaction(metadata, nm.priceFeedConfig, signerData.rawData, r, s, v)
+                            //await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
                             logger.info('success')
                         } catch (e) {
                             logger.error(e)
