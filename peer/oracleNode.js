@@ -16,10 +16,11 @@ const priceFeed = require('../jobs/pricefeed')
 const peerService = require('./peer')
 const logger = require("../helpers/logger")
 const protocols = '/pricefeed'
+const MPC = require('../mpc/g18_mpc_ecdsa')
 
 let metadata = {
     chainId: 97,
-    contractAddress: "0xb4251ff3807b059d9d092608B8b412BBC875fB60"
+    contractAddress: "0x4e79A2f145728504CBbf53710d0d24c7a176aBd9"
 }
 
 const createNode = async (bootstrapers) => {
@@ -78,7 +79,7 @@ async function startOracleNode() {
                 //create signature for me
                 let mySignature = Signer.signMessage(signerData.rawData)
                 peerService.sendToAllPeers(nm, pros, mySignature.combined)
-                
+
                 if (!nm.approvedMessages[signerData.messageHash].includes(Signer.myOracleAddress())) {
                     nm.approvedMessages[signerData.messageHash].push(Signer.myOracleAddress())
                     console.log('current num signer ', signerData.messageHash, nm.approvedMessages[signerData.messageHash].length)
@@ -86,6 +87,19 @@ async function startOracleNode() {
 
                 if (priceFeed.signersSufficient(metadata, nm.priceFeedConfig, nm.approvedMessages[signerData.messageHash].length)) {
                     logger.info('Consensus agreement, it is now time to make MPC signature')
+
+                    MPC.startMPCSign(config.sm_endpoint, "keys.store", signerData.messageHash.slice(2), async function (sig) {
+                        let r = sig.r
+                        let s = sig.s
+                        let v = parseInt(sig.v) + 27
+                        try {
+                            console.log('submitting')
+                            await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
+                            console.log('success')
+                        } catch (e) {
+                            //avoid tx revert in case duplicate tx
+                        }
+                    })
                 }
             }
         }
