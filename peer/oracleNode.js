@@ -93,7 +93,13 @@ async function startOracleNode() {
                     }
                     nm.mpcState[signerData.messageHash] = true
                     let hashForMPC = Signer.getHashForMPCWithHash(signerData.messageHash)
-                    MPC.startMPCSign(config.sm_endpoint, "keys.store", hashForMPC.slice(2), async function (sig) {
+                    let first4Bytes = slice.slice(0, 10)
+                    let hashId = parseInt(first4Bytes)
+                    let port = hashId % 10
+                    let ip = config.sm_endpoint
+                    let initialPort = parseInt(config.sm_initialport) 
+                    let targetPort = initialPort + port
+                    MPC.startMPCSign(`${ip}:${targetPort}`, "keys.store", hashForMPC.slice(2), async function (sig) {
                         let r = sig.r
                         let s = sig.s
                         let v = parseInt(sig.v) + 27
