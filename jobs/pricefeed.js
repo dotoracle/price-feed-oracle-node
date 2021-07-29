@@ -38,13 +38,13 @@ async function getLatestDataToSign(metadata, configData) {
     let updatedAt = parseInt(latestRoundInfo.updatedAt)
     let lastUpdated = updatedAt
     let now = Math.floor(Date.now() / 1000)
-    lastUpdated = lastUpdated == 0? now : lastUpdated
+    lastUpdated = lastUpdated == 0 ? now : lastUpdated
     updatedAt = now > updatedAt ? now : updatedAt
     let deadline = updatedAt + 200//valid til 200s
 
     let web3 = configData[chainId].web3
     const encoded = web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [nextRound, contractAddress, priceOfTokensToEncode, deadline, tokensToEncode, description])
-    return {data: encoded, lastUpdated: lastUpdated}
+    return { data: encoded, lastUpdated: lastUpdated }
 }
 
 //validate data received from other oracles with the locally stpred data in DB
@@ -184,6 +184,8 @@ async function submitTransaction(metadata, configData, oracleData, r, s, v) {
         let latestRoundInfo = await ct.methods.latestRoundInfo().call()
         let currentRound = parseInt(latestRoundInfo.roundId)
         if (currentRound != parseInt(decoded.roundId)) {
+            //estimate tx fails or not
+            await ct.methods.submit(decoded.roundId, decoded.prices, decoded.deadline, r, s, v).estimateGas({ from: configData.ACCOUNT, gas: 2000000 })
             await ct.methods.submit(decoded.roundId, decoded.prices, decoded.deadline, r, s, v).send({ from: configData.ACCOUNT, gas: 2000000, gasPrice: 20000000000 })
         }
     } catch (e) {
