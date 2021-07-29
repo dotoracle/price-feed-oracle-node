@@ -93,7 +93,7 @@ async function startOracleNode() {
                     }
                     nm.mpcState[signerData.messageHash] = true
                     let hashForMPC = Signer.getHashForMPCWithHash(signerData.messageHash)
-                    let first4Bytes = slice.slice(0, 10)
+                    let first4Bytes = hashForMPC.slice(0, 10)
                     let hashId = parseInt(first4Bytes)
                     let port = hashId % 10
                     let ip = config.sm_endpoint
