@@ -14,7 +14,7 @@ const chainIdList = Object.keys(multipricefeedConfig)
 const contractMap = {}  //contract list based on chain id
 chainIdList.forEach(c => contractMap[c] = multipricefeedConfig[c])
 const period = 8 * 60;  //8 mionutes
-const THRESHOLD_SIGNERS = 20
+const THRESHOLD_SIGNERS = 66
 
 //data is read from data base and encode all parameters in hex
 async function getLatestDataToSign(metadata, configData) {
