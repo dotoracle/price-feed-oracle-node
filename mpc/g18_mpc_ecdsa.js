@@ -10,7 +10,7 @@ function startMPCSign(smEndPoint, keyStoreFile, data, cb) {
     signProcess.on('close', (code, signal) => {
         logger.info(
             `Signing process terminated due to receipt of signal ${signal} ${code}`);
-        logger.log(`Done: Signature saved in file ${fileName}`);
+        logger.info(`Done: Signature saved in file ${fileName}`);
         try {
             let sigJson = require(`./${fileName}`)
             cb({ r: sigJson[1], s: sigJson[3], v: sigJson[5] })
