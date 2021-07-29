@@ -1,5 +1,4 @@
 const spawn = require('child_process').spawn;
-let child = spawn('node', ['child.js'], { timeout: 20000 });
 
 require('dotenv').config()
 const logger = require('../helpers/logger');
