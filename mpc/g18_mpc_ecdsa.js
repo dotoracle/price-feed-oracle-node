@@ -21,9 +21,9 @@ function startMPCSign(smEndPoint, keyStoreFile, data, cb) {
     setTimeout(() => {
         try {
             logger.info('Killing process')
-            signProcess.kill()
+            signProcess.kill("SIGINT")
         } catch (e) {
-            
+
         }
     }, 120000)
 }
