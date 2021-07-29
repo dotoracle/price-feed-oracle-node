@@ -169,8 +169,8 @@ const dotABI = [
 ]
 
 async function main() {
-    let web3 = await new Web3(new Web3.providers.HttpProvider(config.rpc["97"].http))
-    let contract = await new web3.eth.Contract(dotABI, '0x8ffe8f68833af4d07a8fdedb32f204a4201ba21d')
+    let web3 = await new Web3(new Web3.providers.HttpProvider(config.rpc['97'].http))
+    let contract = await new web3.eth.Contract(dotABI, config.contracts.multipricefeed['97'][0])
     let tokens = await contract.methods.getTokenList().call()
     let lastRoundData = await contract.methods.latestRoundInfo().call()
 
