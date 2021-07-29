@@ -5,8 +5,8 @@ const logger = require('../helpers/logger');
 
 function startMPCSign(smEndPoint, keyStoreFile, data, cb) {
     const fileName = "signature" + data + ".json"
-    logger.info("Starting MPC")
-    let signProcess = spawn('./mpc/gg18_sign_client', [`${smEndPoint}`, `mpc/${keyStoreFile}`, `"${data}"`, `mpc/${fileName}`], { timeout: 120000, killSignal: "SIGINT" })
+    logger.info("Starting MPC for %s ", data)
+    let signProcess = spawn('./mpc/gg18_sign_client', [`${smEndPoint}`, `mpc/${keyStoreFile}`, `"${data}"`, `mpc/${fileName}`], { timeout: 200000, killSignal: "SIGINT" })
     signProcess.on('close', (code, signal) => {
         logger.info(
             `Signing process terminated due to receipt of signal ${signal} ${code}`);
