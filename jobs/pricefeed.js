@@ -5,7 +5,7 @@ const staticWeb3 = new Web3()
 const HDWalletProvider = require('@truffle/hdwallet-provider')
 const exchangeHelper = require('../helpers/readPrice')
 const multipricefeedConfig = config.get("contracts.multipricefeed")
-const MultiPriceFeedABI = require('../abi/MultiPriceFeedOracle.json')
+const MultiPriceFeedABI = require('../abi/MultiPriceFeedOracleV2.json')
 const threshold = 10    //1%
 const db = require('../models');
 const logger = require('../helpers/logger');
@@ -14,7 +14,7 @@ const chainIdList = Object.keys(multipricefeedConfig)
 const contractMap = {}  //contract list based on chain id
 chainIdList.forEach(c => contractMap[c] = multipricefeedConfig[c])
 const period = 8 * 60;  //8 mionutes
-const THRESHOLD = 66
+const THRESHOLD_SIGNERS = 20
 
 //data is read from data base and encode all parameters in hex
 async function getLatestDataToSign(metadata, configData) {
@@ -36,13 +36,15 @@ async function getLatestDataToSign(metadata, configData) {
     let currentRound = parseInt(latestRoundInfo.roundId)
     let nextRound = currentRound + 1
     let updatedAt = parseInt(latestRoundInfo.updatedAt)
+    let lastUpdated = updatedAt
     let now = Math.floor(Date.now() / 1000)
+    lastUpdated = lastUpdated == 0? now : lastUpdated
     updatedAt = now > updatedAt ? now : updatedAt
     let deadline = updatedAt + 200//valid til 200s
 
     let web3 = configData[chainId].web3
     const encoded = web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [nextRound, contractAddress, priceOfTokensToEncode, deadline, tokensToEncode, description])
-    return encoded
+    return {data: encoded, lastUpdated: lastUpdated}
 }
 
 //validate data received from other oracles with the locally stpred data in DB
@@ -50,12 +52,12 @@ async function validateOracleData(data, metadata, configData) {
     let decoded
     try {
         decoded = staticWeb3.eth.abi.decodeParameters([
-            {type: 'uint32', name: 'roundId'},
-            {type: 'address', name: 'contractAddress'},
-            {type: 'int256[]', name: 'prices'},
-            {type: 'uint256', name: 'deadline'},
-            {type: 'string[]', name: 'tokens'},
-            {type: 'string', name: 'description'},
+            { type: 'uint32', name: 'roundId' },
+            { type: 'address', name: 'contractAddress' },
+            { type: 'int256[]', name: 'prices' },
+            { type: 'uint256', name: 'deadline' },
+            { type: 'string[]', name: 'tokens' },
+            { type: 'string', name: 'description' },
         ], data)
     } catch (e) {
         return false;
@@ -84,7 +86,7 @@ async function validateOracleData(data, metadata, configData) {
         return false;
     }
     if (nextRound != decoded.roundId) {
-        logger.warn('Round invalid')
+        logger.warn('Round invalid %d', nextRound)
         return false;
     }
 
@@ -120,7 +122,7 @@ async function validateOracleData(data, metadata, configData) {
 
 function signersSufficient(metadata, configData, currentNumSigners) {
     let oracleAddresses = configData[metadata.chainId].oracleAddresses[metadata.contractAddress]
-    return currentNumSigners * 100/oracleAddresses.length >= THRESHOLD
+    return currentNumSigners * 100 / oracleAddresses.length >= THRESHOLD_SIGNERS
 }
 
 async function getConfigData() {
@@ -132,6 +134,8 @@ async function getConfigData() {
             try {
                 let rpc = config.rpc[chainIdList].http
                 let web3 = new Web3(new HDWalletProvider(process.env.SUBMITTER_KEY, rpc))
+                let accounts = await web3.eth.getAccounts()
+                priceFeedInfoMap.ACCOUNT = accounts[0]
                 priceFeedInfoMap[chainId] = {}
                 priceFeedInfoMap[chainId].web3 = web3
                 priceFeedInfoMap[chainId].contracts = []
@@ -158,9 +162,39 @@ async function getConfigData() {
 }
 
 
+async function submitTransaction(metadata, configData, oracleData, r, s, v) {
+    let decoded
+    try {
+        decoded = staticWeb3.eth.abi.decodeParameters([
+            { type: 'uint32', name: 'roundId' },
+            { type: 'address', name: 'contractAddress' },
+            { type: 'int256[]', name: 'prices' },
+            { type: 'uint256', name: 'deadline' },
+            { type: 'string[]', name: 'tokens' },
+            { type: 'string', name: 'description' },
+        ], oracleData)
+
+
+        let chainId = metadata.chainId
+        let contractAddress = metadata.contractAddress
+        let idx = configData[chainId].contracts.findIndex(e => e.options.address.toLowerCase() == contractAddress.toLowerCase())
+
+        let ct = configData[chainId].contracts[idx]
+
+        let latestRoundInfo = await ct.methods.latestRoundInfo().call()
+        let currentRound = parseInt(latestRoundInfo.roundId)
+        if (currentRound != parseInt(decoded.roundId)) {
+            await ct.methods.submit(decoded.roundId, decoded.prices, decoded.deadline, r, s, v).send({ from: configData.ACCOUNT, gas: 2000000, gasPrice: 20000000000 })
+        }
+    } catch (e) {
+        logger.error('Error in submitting tx %s', e);
+    }
+}
+
 module.exports = {
     getLatestDataToSign,
     validateOracleData,
     getConfigData,
-    signersSufficient
+    signersSufficient,
+    submitTransaction
 }
