@@ -31,12 +31,12 @@ function increaseBanScore(nm, peerId) {
 async function sendToPeer(nm, peerId, protocols, message) {
   try {
     const { stream } = await nm.node.dialProtocol(peerId, protocols)
-    logger.info('Sending to %s', peerId)
+    //logger.info('Sending to %s', peerId)
     await pipe(
       Array.isArray(message) ? message : [message],
       stream
     )
-    logger.info('success')
+    //logger.info('success')
   } catch (e) {
     logger.error('Failed to broadcast to %s', peerId)
     //increase banscore
@@ -91,7 +91,7 @@ async function sendToPeers(nm, peerList, protocols, message) {
       await send(message, stream)
       logger.info('successfully sent to %s', peer.id.toB58String())
     } catch (err) {
-      logger.error('Could not negotiate kickoff protocol stream with peer %s %s', err, peer.id.toB58String())
+      logger.error('Could not negotiate protocol stream with peer %s %s', err, peer.id.toB58String())
     }
   })
 }
@@ -119,11 +119,12 @@ async function startPeerService(nm, protocol, receiveAndBroadcast) {
         async function (source) {
           for await (const msg of source) {
             let msgString = msg.toString()
-            if (!nm.seenMessages[msgString]) {
+            let msgHash = keccak256(msgString)
+            if (!nm.seenMessages[msgHash]) {
               let verifiedRet = verifyMessage(msgString)
               if (verifiedRet) {
                 logger.info(`receving data from ${verifiedRet.signer}`)
-                nm.seenMessages[msgString] = true
+                nm.seenMessages[msgHash] = true
                 if (!receiveAndBroadcast) {
                   sendToAllPeers(nm, protocol, msgString)
                 } else {

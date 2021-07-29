@@ -17,6 +17,7 @@ const peerService = require('./peer')
 const logger = require("../helpers/logger")
 const protocols = '/pricefeed'
 const MPC = require('../mpc/g18_mpc_ecdsa')
+const keccak256 = require('keccak256')
 
 let metadata = {
     chainId: 97,
@@ -142,7 +143,8 @@ async function startOracleNode() {
     
         if (data.lastUpdated + 10*60 > now) return; 
         let message = signed.combined
-        nm.seenMessages[message] = true
+        let hash = keccak256(message)
+        nm.seenMessages[hash] = true
         await peerService.sendToAllPeers(nm, [protocols], message)
         i++;
     }, 90000)
