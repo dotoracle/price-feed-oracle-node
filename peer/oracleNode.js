@@ -147,7 +147,7 @@ async function startOracleNode() {
         nm.seenMessages[hash] = true
         await peerService.sendToAllPeers(nm, [protocols], message)
         i++;
-    }, 240000)
+    }, 180000)
 
 }
 startOracleNode()

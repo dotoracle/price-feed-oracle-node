@@ -179,7 +179,9 @@ async function submitTransaction(metadata, configData, oracleData, r, s, v) {
         let contractAddress = metadata.contractAddress
         let idx = configData[chainId].contracts.findIndex(e => e.options.address.toLowerCase() == contractAddress.toLowerCase())
 
-        let ct = configData[chainId].contracts[idx]
+        let rpc = config.rpc[chainIdList].http
+        let web3 = new Web3(new HDWalletProvider(process.env.SUBMITTER_KEY, rpc))
+        let ct = await new web3.eth.Contract(MultiPriceFeedABI, contractAddress)
 
         let latestRoundInfo = await ct.methods.latestRoundInfo().call()
         let currentRound = parseInt(latestRoundInfo.roundId)
