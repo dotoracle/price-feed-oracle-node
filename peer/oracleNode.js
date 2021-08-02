@@ -18,6 +18,7 @@ const logger = require("../helpers/logger")
 const protocols = '/pricefeed'
 const MPC = require('../mpc/g18_mpc_ecdsa')
 const keccak256 = require('keccak256')
+const cleanUp = require('./cleanupgg18')
 
 let metadata = {
     chainId: 97,
@@ -117,6 +118,8 @@ async function startOracleNode() {
                             
                         } catch (e) {
                             logger.error(e)
+                        } finally {
+                            cleanUp()
                         }
                     })
                 }
