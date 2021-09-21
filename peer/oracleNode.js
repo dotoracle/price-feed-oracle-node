@@ -152,7 +152,7 @@ async function startOracleNode() {
         let turnTime = Math.floor(pushInternal/oracleAddresses.length)
         if (data.lastUpdated + 10*60 > now) return; 
         //is this my turn to push data? 
-        if (data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) {
+        if ((data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) || (myIndex == myOrackeAddress.length && data.lastUpdated + (myIndex + 1) * turnTime < now)) {
             let message = signed.combined
             let hash = keccak256(message)
             nm.seenMessages[hash] = true
