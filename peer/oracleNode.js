@@ -159,7 +159,7 @@ async function startOracleNode() {
             await peerService.sendToAllPeers(nm, [protocols], message)
             i++;
         }
-    }, 30)
+    }, 30000)
 
 }
 startOracleNode()
