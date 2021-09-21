@@ -146,10 +146,15 @@ async function startOracleNode() {
         let oracleAddresses = data.oracleAddresses.map(e => e.toLowerCase());
         let myOrackeAddress = Signer.myOracleAddress().toLowerCase()
         let myIndex = oracleAddresses.findIndex( e => e == myOrackeAddress)
+        console.log('myIndex', myIndex)
         if (myIndex == -1) return;
 
         let pushInternal = 10 * 60;
         let turnTime = Math.floor(pushInternal/oracleAddresses.length)
+        console.log('pushInternal', pushInternal)
+        console.log('turnTime', turnTime)
+        console.log('now', now)
+
         if (data.lastUpdated + 10*60 > now) return; 
         //is this my turn to push data? 
         if ((data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) || (myIndex == myOrackeAddress.length - 1 && data.lastUpdated + (myIndex + 1) * turnTime < now)) {
