@@ -154,6 +154,10 @@ async function startOracleNode() {
         console.log('pushInternal', pushInternal)
         console.log('turnTime', turnTime)
         console.log('now', now)
+        console.log('data.lastUpdated + (myIndex + 1) * turnTime < now', data.lastUpdated + (myIndex + 1) * turnTime < now)
+
+        console.log('myIndex == myOrackeAddress.length - 1', myIndex == myOrackeAddress.length - 1)
+
 
         if (data.lastUpdated + 10*60 > now) return; 
         //is this my turn to push data? 
