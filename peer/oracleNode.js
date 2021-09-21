@@ -155,7 +155,7 @@ async function startOracleNode() {
         console.log('turnTime', turnTime)
         console.log('now', now)
         console.log('data.lastUpdated + (myIndex + 1) * turnTime < now', data.lastUpdated + (myIndex + 1) * turnTime < now)
-
+        console.log('myOrackeAddress.length - 1', myOrackeAddress.length - 1)
         console.log('myIndex == myOrackeAddress.length - 1', myIndex == myOrackeAddress.length - 1)
 
 
