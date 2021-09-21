@@ -151,17 +151,10 @@ async function startOracleNode() {
 
         let pushInternal = 10 * 60;
         let turnTime = Math.floor(pushInternal/oracleAddresses.length)
-        console.log('pushInternal', pushInternal)
-        console.log('turnTime', turnTime)
-        console.log('now', now)
-        console.log('data.lastUpdated + (myIndex + 1) * turnTime < now', data.lastUpdated + (myIndex + 1) * turnTime < now)
-        console.log('myOrackeAddress.length - 1', myOrackeAddress.length - 1)
-        console.log('myIndex == myOrackeAddress.length - 1', myIndex == myOrackeAddress.length - 1)
-
 
         if (data.lastUpdated + 10*60 > now) return; 
         //is this my turn to push data? 
-        if ((data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) || (myIndex == myOrackeAddress.length - 1 && data.lastUpdated + (myIndex + 1) * turnTime < now)) {
+        if ((data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) || (myIndex == oracleAddresses.length - 1 && data.lastUpdated + (myIndex + 1) * turnTime < now)) {
             console.log('sending data')
             let message = signed.combined
             let hash = keccak256(message)
