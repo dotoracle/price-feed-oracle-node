@@ -139,7 +139,7 @@ async function startOracleNode() {
     var i = 0
     setInterval(async function () {
         let data = await priceFeed.getLatestDataToSign(metadata, nm.priceFeedConfig)
-        console.log(data.data)
+        //console.log(data.data)
         let now = Math.floor(Date.now() / 1000)
         let signed = Signer.signMessage(data.data)
         console.log('lastupdated', data.lastUpdated, now)
@@ -152,7 +152,8 @@ async function startOracleNode() {
         let turnTime = Math.floor(pushInternal/oracleAddresses.length)
         if (data.lastUpdated + 10*60 > now) return; 
         //is this my turn to push data? 
-        if ((data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) || (myIndex == myOrackeAddress.length && data.lastUpdated + (myIndex + 1) * turnTime < now)) {
+        if ((data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) || (myIndex == myOrackeAddress.length - 1 && data.lastUpdated + (myIndex + 1) * turnTime < now)) {
+            console.log('sending data')
             let message = signed.combined
             let hash = keccak256(message)
             nm.seenMessages[hash] = true
