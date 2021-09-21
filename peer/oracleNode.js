@@ -143,14 +143,23 @@ async function startOracleNode() {
         let now = Math.floor(Date.now() / 1000)
         let signed = Signer.signMessage(data.data)
         console.log('lastupdated', data.lastUpdated, now)
-    
+        let oracleAddresses = data.oracleAddresses.map(e => e.toLowerCase());
+        let myOrackeAddress = Signer.myOracleAddress().toLowerCase()
+        let myIndex = oracleAddresses.findIndex( e => e == myOrackeAddress)
+        if (myIndex == -1) return;
+
+        let pushInternal = 10 * 60;
+        let turnTime = Math.floor(pushInternal/oracleAddresses.length)
         if (data.lastUpdated + 10*60 > now) return; 
-        let message = signed.combined
-        let hash = keccak256(message)
-        nm.seenMessages[hash] = true
-        await peerService.sendToAllPeers(nm, [protocols], message)
-        i++;
-    }, 180000)
+        //is this my turn to push data? 
+        if (data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) {
+            let message = signed.combined
+            let hash = keccak256(message)
+            nm.seenMessages[hash] = true
+            await peerService.sendToAllPeers(nm, [protocols], message)
+            i++;
+        }
+    }, 30)
 
 }
 startOracleNode()

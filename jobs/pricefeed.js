@@ -32,7 +32,9 @@ async function getLatestDataToSign(metadata, configData) {
 
     let ct = configData[chainId].contracts[idx]
     let latestRoundInfo = await ct.methods.latestRoundInfo().call()
+
     let description = configData[chainId].descriptions[idx]
+    let oracleAddresses = await ct.methods.getOracles().call()
     let currentRound = parseInt(latestRoundInfo.roundId)
     let nextRound = currentRound + 1
     let updatedAt = parseInt(latestRoundInfo.updatedAt)
@@ -44,7 +46,7 @@ async function getLatestDataToSign(metadata, configData) {
 
     let web3 = configData[chainId].web3
     const encoded = web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [nextRound, contractAddress, priceOfTokensToEncode, deadline, tokensToEncode, description])
-    return { data: encoded, lastUpdated: lastUpdated }
+    return { data: encoded, lastUpdated: lastUpdated, oracleAddresses: oracleAddresses }
 }
 
 //validate data received from other oracles with the locally stpred data in DB

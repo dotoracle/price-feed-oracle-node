@@ -4,7 +4,7 @@ const Web3 = require('web3');
 const HDWalletProvider = require('@truffle/hdwallet-provider')
 const exchangeHelper = require('./helpers/readPrice')
 const multipricefeedConfig = config.get("contracts.multipricefeed")
-const MultiPriceFeedABI = require('./abi/MultiPriceFeedOracle.json')
+const MultiPriceFeedABI = require('./abi/MultiPriceFeedOracleV2.json')
 const Signer = require('./oracles/signPriceData')
 const chainIdList = Object.keys(multipricefeedConfig)
 const contractMap = {}  //contract list based on chain id
@@ -70,10 +70,13 @@ async function main() {
                     let r = sig.r
                     let s = sig.s
                     let v = parseInt(sig.v) + 27
-    
-                    console.log('submitting')
-                    await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
-                    console.log('success')
+                    try {
+                        console.log('submitting')
+                        await ct.methods.submit(nextRound, prices, deadline, r, s, v).send({ from: account, gas: 2000000, gasPrice: 20000000000 })
+                        console.log('success')
+                    } catch(e) {
+                        //avoid tx revert in case duplicate tx
+                    }
                 })
                 
             }
