@@ -194,6 +194,10 @@ async function submitTransaction(metadata, configData, oracleData, r, s, v) {
         if (currentRound != parseInt(decoded.roundId)) {
             //estimate tx fails or not
             await ct.methods.submit(decoded.roundId, decoded.prices, decoded.deadline, r, s, v).estimateGas({ from: configData.ACCOUNT, gas: 2000000 })
+            var gp = 20000000000
+            if (config.rpc[chainId].gasPrice !== undefined) {
+                gp = config.rpc[chainId].gasPrice
+            }
             await ct.methods.submit(decoded.roundId, decoded.prices, decoded.deadline, r, s, v).send({ from: configData.ACCOUNT, gas: 2000000, gasPrice: 20000000000 })
         }
     } catch (e) {
