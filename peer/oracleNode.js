@@ -107,7 +107,7 @@ async function startOracleNode() {
                         let v = parseInt(sig.v) + 27
                         try {
                             let random = Math.floor(Math.random() * 10)
-                            let waitTime = random * 5
+                            let waitTime = random * 2
                             logger.info("Waiting for %s second before submit", waitTime)
                             setTimeout(async() => {
                                 logger.info('submitting signature %s', sig)
@@ -162,7 +162,7 @@ async function startOracleNode() {
             await peerService.sendToAllPeers(nm, [protocols], message)
             i++;
         }
-    }, 30000)
+    }, 90000)
 
 }
 startOracleNode()
