@@ -20,10 +20,7 @@ const MPC = require('../mpc/g18_mpc_ecdsa')
 const keccak256 = require('keccak256')
 const cleanUp = require('./cleanupgg18')
 
-let metadata = {
-    chainId: 97,
-    contractAddress: "0x4e79A2f145728504CBbf53710d0d24c7a176aBd9"
-}
+let metadata = config.get("metadata")
 
 const createNode = async (bootstrapers) => {
     const node = await Libp2p.create({

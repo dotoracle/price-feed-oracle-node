@@ -81,11 +81,16 @@
       "http": "https://rpc.testnet.fantom.network/"
     },
     "1287": {
-      "http": "https://rpc.testnet.moonbeam.network"
+      "http": "https://rpc.testnet.moonbeam.network",
+      "gasPrice": 1
     },
     "43113": {
       "http": "https://api.avax-test.network/ext/bc/C/rpc"
     }
+  },
+  "metadata": {
+    "chainId": 97,
+    "contractAddress": "0x4e79A2f145728504CBbf53710d0d24c7a176aBd9"
   },
   "oracles": {
     "keys": [
