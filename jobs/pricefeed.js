@@ -26,11 +26,14 @@ async function getLatestDataToSign(metadata, configData) {
     }
     let chainId = metadata.chainId
     let contractAddress = metadata.contractAddress  //oracle contract
-    let idx = configData[chainId].contracts.findIndex(e => e.options.address.toLowerCase() == contractAddress.toLowerCase())
+    let idx = configData[chainId].contracts.findIndex(e => e.toLowerCase() == contractAddress.toLowerCase())
     let tokensToEncode = configData[chainId].tokens[idx]
     let priceOfTokensToEncode = tokensToEncode.map(t => priceMap[t])
 
-    let ct = configData[chainId].contracts[idx]
+    let ctAddress = configData[chainId].contracts[idx]
+    let rpc = config.rpc[chainId].http
+    let web3 = new Web3(new HDWalletProvider(process.env.SUBMITTER_KEY, rpc))
+    let ct = await new web3.eth.Contract(MultiPriceFeedABI, ctAddress)
     let latestRoundInfo = await ct.methods.latestRoundInfo().call()
 
     let description = configData[chainId].descriptions[idx]
@@ -44,7 +47,6 @@ async function getLatestDataToSign(metadata, configData) {
     updatedAt = now > updatedAt ? now : updatedAt
     let deadline = updatedAt + 200//valid til 200s
 
-    let web3 = configData[chainId].web3
     const encoded = web3.eth.abi.encodeParameters(['uint32', 'address', 'int256[]', 'uint256', "string[]", "string"], [nextRound, contractAddress, priceOfTokensToEncode, deadline, tokensToEncode, description])
     return { data: encoded, lastUpdated: lastUpdated, oracleAddresses: oracleAddresses }
 }
@@ -67,7 +69,7 @@ async function validateOracleData(data, metadata, configData) {
 
     let chainId = metadata.chainId
     let contractAddress = metadata.contractAddress
-    let idx = configData[chainId].contracts.findIndex(e => e.options.address.toLowerCase() == contractAddress.toLowerCase())
+    let idx = configData[chainId].contracts.findIndex(e => e.toLowerCase() == contractAddress.toLowerCase())
 
     let tokensOfContract = configData[chainId].tokens[idx]
 
@@ -77,7 +79,11 @@ async function validateOracleData(data, metadata, configData) {
         return false;
     }
 
-    let ct = configData[chainId].contracts[idx]
+    let ctAddress = configData[chainId].contracts[idx]
+    let rpc = config.rpc[chainId].http
+    let web3 = new Web3(new HDWalletProvider(process.env.SUBMITTER_KEY, rpc))
+    let ct = await new web3.eth.Contract(MultiPriceFeedABI, ctAddress)
+
     let latestRoundInfo = await ct.methods.latestRoundInfo().call()
     let description = configData[chainId].descriptions[idx]
     let currentRound = parseInt(latestRoundInfo.roundId)
@@ -134,12 +140,11 @@ async function getConfigData() {
         let chainId = chainIdList[i]
         if (!priceFeedInfoMap[chainId]) {
             try {
-                let rpc = config.rpc[chainIdList].http
+                let rpc = config.rpc[chainId].http
                 let web3 = new Web3(new HDWalletProvider(process.env.SUBMITTER_KEY, rpc))
                 let accounts = await web3.eth.getAccounts()
                 priceFeedInfoMap.ACCOUNT = accounts[0]
                 priceFeedInfoMap[chainId] = {}
-                priceFeedInfoMap[chainId].web3 = web3
                 priceFeedInfoMap[chainId].contracts = []
                 priceFeedInfoMap[chainId].tokens = [] //array of array
                 priceFeedInfoMap[chainId].descriptions = []
@@ -147,7 +152,7 @@ async function getConfigData() {
                 for (var j = 0; j < contractMap[chainId].length; j++) {
                     console.log('contractMap[chainId][j]', contractMap[chainId][j])
                     let ct = await new web3.eth.Contract(MultiPriceFeedABI, contractMap[chainId][j])
-                    priceFeedInfoMap[chainId].contracts.push(ct)
+                    priceFeedInfoMap[chainId].contracts.push(ct.options.address)
                     priceFeedInfoMap[chainId].tokens.push((await ct.methods.getTokenList().call()))
                     priceFeedInfoMap[chainId].descriptions.push((await ct.methods.description().call()))
                     let oracleAddresses = await ct.methods.getOracles().call()
@@ -179,9 +184,8 @@ async function submitTransaction(metadata, configData, oracleData, r, s, v) {
 
         let chainId = metadata.chainId
         let contractAddress = metadata.contractAddress
-        let idx = configData[chainId].contracts.findIndex(e => e.options.address.toLowerCase() == contractAddress.toLowerCase())
 
-        let rpc = config.rpc[chainIdList].http
+        let rpc = config.rpc[chainId].http
         let web3 = new Web3(new HDWalletProvider(process.env.SUBMITTER_KEY, rpc))
         let ct = await new web3.eth.Contract(MultiPriceFeedABI, contractAddress)
 
