@@ -1,10 +1,11 @@
 const { exec } = require("child_process");
 require('dotenv').config()
+const logger = require('../helpers/logger');
 
 function startMPCSign(smEndPoint, keyStoreFile, data, cb) {
     const fileName = "signature" + data + ".json"
-    console.log("Starting MPC")
-    exec(`./mpc/gg18_sign_client ${smEndPoint} mpc/${keyStoreFile} "${data}" mpc/${fileName}`, (error, stdout, stderr) => {
+    logger.info("Starting MPC for %s", data)
+    exec(`./mpc/gg18_sign_client ${smEndPoint} mpc/${keyStoreFile} "${data}" mpc/${fileName}`, {timeout: 240000, killSignal: "SIGINT"}, (error, stdout, stderr) => {
         if (error) {
             console.log(`error: ${error.message}`);
             return;

@@ -22,7 +22,7 @@ function isBanned(nm, peerId) {
 function increaseBanScore(nm, peerId) {
   let currentBanScore = nm.banScore[peerId] ? nm.banScore[peerId] : 0;
   nm.banScore[peerId] = currentBanScore + 1;
-  logger.warn(`Peer ${peerId} bannedScore ${nm.banScore[peerId]}`)
+  //logger.warn(`Peer ${peerId} bannedScore ${nm.banScore[peerId]}`)
   if (isBanned(nm, peerId)) {
     delete nm.banScore[peerId];
   }
@@ -31,14 +31,14 @@ function increaseBanScore(nm, peerId) {
 async function sendToPeer(nm, peerId, protocols, message) {
   try {
     const { stream } = await nm.node.dialProtocol(peerId, protocols)
-    logger.info('Sending to %s', peerId)
+    //logger.info('Sending to %s', peerId)
     await pipe(
       Array.isArray(message) ? message : [message],
       stream
     )
-    logger.info('success')
+    //logger.info('success')
   } catch (e) {
-    logger.error('Failed to broadcast to %s', peerId)
+    //logger.error('Failed to broadcast to %s', peerId)
     //increase banscore
     increaseBanScore(nm, peerId)
   }
@@ -74,7 +74,7 @@ async function sendToPeers(nm, peerList, protocols, message) {
     sendToPeer(nm, peerId, protocols, message)
   })
   // Promise.all(l)
-  logger.info("peers %s", protocols[0])
+  //logger.info("peers %s", protocols[0])
   nm.node.peerStore.peers.forEach(async (peer) => {
     // if (!peer.protocols.includes(protocols)) {
     //   logger.info('no match peer %s', protocols)
@@ -82,16 +82,16 @@ async function sendToPeers(nm, peerList, protocols, message) {
     // }
     const connection = nm.node.connectionManager.get(peer.id)
     if (!connection) {
-      logger.warn("not found connection for peer %s", peer.id)
+      //logger.warn("not found connection for peer %s", peer.id)
       return
     }
 
     try {
       const { stream } = await connection.newStream(protocols)
       await send(message, stream)
-      logger.info('successfully sent to %s', peer.id.toB58String())
+      //logger.info('successfully sent to %s', peer.id.toB58String())
     } catch (err) {
-      logger.error('Could not negotiate kickoff protocol stream with peer %s %s', err, peer.id.toB58String())
+      //logger.error('Could not negotiate protocol stream with peer %s %s', err, peer.id.toB58String())
     }
   })
 }
@@ -119,11 +119,12 @@ async function startPeerService(nm, protocol, receiveAndBroadcast) {
         async function (source) {
           for await (const msg of source) {
             let msgString = msg.toString()
-            if (!nm.seenMessages[msgString]) {
+            let msgHash = keccak256(msgString)
+            if (!nm.seenMessages[msgHash]) {
               let verifiedRet = verifyMessage(msgString)
               if (verifiedRet) {
                 logger.info(`receving data from ${verifiedRet.signer}`)
-                nm.seenMessages[msgString] = true
+                nm.seenMessages[msgHash] = true
                 if (!receiveAndBroadcast) {
                   sendToAllPeers(nm, protocol, msgString)
                 } else {

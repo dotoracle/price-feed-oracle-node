@@ -17,11 +17,10 @@ const peerService = require('./peer')
 const logger = require("../helpers/logger")
 const protocols = '/pricefeed'
 const MPC = require('../mpc/g18_mpc_ecdsa')
+const keccak256 = require('keccak256')
+const cleanUp = require('./cleanupgg18')
 
-let metadata = {
-    chainId: 97,
-    contractAddress: "0x4e79A2f145728504CBbf53710d0d24c7a176aBd9"
-}
+let metadata = config.get("metadata")
 
 const createNode = async (bootstrapers) => {
     const node = await Libp2p.create({
@@ -93,13 +92,19 @@ async function startOracleNode() {
                     }
                     nm.mpcState[signerData.messageHash] = true
                     let hashForMPC = Signer.getHashForMPCWithHash(signerData.messageHash)
-                    MPC.startMPCSign(config.sm_endpoint, "keys.store", hashForMPC.slice(2), async function (sig) {
+                    let first4Bytes = hashForMPC.slice(0, 10)
+                    let hashId = parseInt(first4Bytes)
+                    let port = hashId % 10
+                    let ip = config.sm_endpoint
+                    let initialPort = parseInt(config.sm_initialport) 
+                    let targetPort = initialPort + port
+                    MPC.startMPCSign(`${ip}:${targetPort}`, "keys.store", hashForMPC.slice(2), async function (sig) {
                         let r = sig.r
                         let s = sig.s
                         let v = parseInt(sig.v) + 27
                         try {
                             let random = Math.floor(Math.random() * 10)
-                            let waitTime = random * 5
+                            let waitTime = random * 2
                             logger.info("Waiting for %s second before submit", waitTime)
                             setTimeout(async() => {
                                 logger.info('submitting signature %s', sig)
@@ -110,6 +115,8 @@ async function startOracleNode() {
                             
                         } catch (e) {
                             logger.error(e)
+                        } finally {
+                            cleanUp()
                         }
                     })
                 }
@@ -129,16 +136,29 @@ async function startOracleNode() {
     var i = 0
     setInterval(async function () {
         let data = await priceFeed.getLatestDataToSign(metadata, nm.priceFeedConfig)
-        console.log(data.data)
+        //console.log(data.data)
         let now = Math.floor(Date.now() / 1000)
         let signed = Signer.signMessage(data.data)
         console.log('lastupdated', data.lastUpdated, now)
-    
+        let oracleAddresses = data.oracleAddresses.map(e => e.toLowerCase());
+        let myOrackeAddress = Signer.myOracleAddress().toLowerCase()
+        let myIndex = oracleAddresses.findIndex( e => e == myOrackeAddress)
+        console.log('myIndex', myIndex)
+        if (myIndex == -1) return;
+
+        let pushInternal = 10 * 60;
+        let turnTime = Math.floor(pushInternal/oracleAddresses.length)
+
         if (data.lastUpdated + 10*60 > now) return; 
-        let message = signed.combined
-        nm.seenMessages[message] = true
-        await peerService.sendToAllPeers(nm, [protocols], message)
-        i++;
+        //is this my turn to push data? 
+        if ((data.lastUpdated + myIndex * turnTime <= now && now < data.lastUpdated + (myIndex + 1) * turnTime) || (myIndex == oracleAddresses.length - 1 && data.lastUpdated + (myIndex + 1) * turnTime < now)) {
+            console.log('sending data')
+            let message = signed.combined
+            let hash = keccak256(message)
+            nm.seenMessages[hash] = true
+            await peerService.sendToAllPeers(nm, [protocols], message)
+            i++;
+        }
     }, 90000)
 
 }
