@@ -8,8 +8,8 @@ const dotABI = require('./abi/MultiPriceFeedOracleV2.json')
 let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time))
 async function main() {
     while (true) {
-        let web3 = await new Web3(new Web3.providers.HttpProvider(config.rpc['97'].http))
-        let contract = await new web3.eth.Contract(dotABI, config.contracts.multipricefeed['97'][0])
+        let web3 = await new Web3(new Web3.providers.HttpProvider(config.rpc['1287'].http))
+        let contract = await new web3.eth.Contract(dotABI, config.contracts.multipricefeed['1287'][0])
         let tokens = await contract.methods.getTokenList().call()
         let lastRoundData = await contract.methods.latestRoundInfo().call()
 

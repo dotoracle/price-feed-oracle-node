@@ -37,12 +37,13 @@
     "multipricefeed": {
       "97": [
         "0x4e79A2f145728504CBbf53710d0d24c7a176aBd9"
-      ]
+      ],
+      "1287": ["0x863ea9287B5e56599Ce1069B9714261a1d70F305"]
     }
   },
   "rpc": {
     "1": {
-      "http": "https://stoic-dijkstra:omen-dugout-ditto-tartly-lyrics-ashy@nd-676-121-911.p2pify.com"
+      "http": "https://nd-688-774-681.p2pify.com/ff3207ccc9237e3c272c55de08a995dc"
     },
     "56": {
       "http": "https://bsc-dataseed.binance.org/"
