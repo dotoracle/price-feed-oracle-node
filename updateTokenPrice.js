@@ -52,8 +52,8 @@ async function main() {
         await db.AvgPriceHistory.insertMany(avgHistory)
     }
     console.log('end', new Date())
-
-    process.exit(0)
 }
 
-main()
+setInterval(() => {
+    main()
+}, 90000)
