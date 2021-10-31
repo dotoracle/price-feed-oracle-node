@@ -134,7 +134,8 @@ async function startOracleNode() {
     )
     //test data
     var i = 0
-    setInterval(async function () {
+
+    var intervalExecute = async function () {
         let data = await priceFeed.getLatestDataToSign(metadata, nm.priceFeedConfig)
         //console.log(data.data)
         let now = Math.floor(Date.now() / 1000)
@@ -159,6 +160,11 @@ async function startOracleNode() {
             await peerService.sendToAllPeers(nm, [protocols], message)
             i++;
         }
+    }
+
+    await intervalExecute()
+    setInterval(async function () {
+        await intervalExecute()
     }, 90000)
 
 }
