@@ -38,7 +38,7 @@
       "97": [
         "0x4e79A2f145728504CBbf53710d0d24c7a176aBd9"
       ],
-      "1287": ["0x863ea9287B5e56599Ce1069B9714261a1d70F305"]
+      "1285": ["0x04B52a1f5e8456c2cEffb0939A522670faF216D0"]
     }
   },
   "rpc": {
@@ -81,8 +81,8 @@
     "4002": {
       "http": "https://rpc.testnet.fantom.network/"
     },
-    "1287": {
-      "http": "https://rpc.testnet.moonbeam.network",
+    "1285": {
+      "http": "https://rpc.moonriver.moonbeam.network",
       "gasPrice": 1
     },
     "43113": {
