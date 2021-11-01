@@ -4,6 +4,7 @@ const db = require('./models')
 const Web3 = require('web3')
 const BigNumber = require('bignumber.js')
 const dotABI = require('./abi/MultiPriceFeedOracleV2.json')
+const logger = require('./helpers/logger')
 
 let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time))
 async function main() {
@@ -16,7 +17,7 @@ async function main() {
 
         let timestamp = lastRoundData.updatedAt
         let answers = lastRoundData.answers
-
+        logger.info('get all token price at from dotoracle %s', JSON.stringify(answers))
         for (let i = 0; i < tokens.length; i++) {
             let token = tokens[i]
             let price = new BigNumber(answers[i])

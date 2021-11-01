@@ -1,6 +1,7 @@
 const config = require('config')
 const exchangeHelper = require('./helpers/exchange')
 const db = require('./models')
+const logger = require('./helpers/logger')
 
 function capitalize(string) {
   return string[0].toUpperCase() + string.slice(1)
@@ -58,7 +59,7 @@ async function main() {
       await db.AvgPriceHistory.insertMany(avgHistory)
     }
 
-    console.log('sleep 60 seconds before continue')
+    logger.info('get all token price at from all CEX. Sleep 60 seconds before continue')
     await sleep(60000)
   }
 }

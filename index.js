@@ -18,7 +18,7 @@ morgan.token('remote-addr', function (req, res) {
     const ffHeaderValue = req.header('x-forwarded-for') ? req.header('x-forwarded-for').split(',')[0] : ''
     return ffHeaderValue || req.connection.remoteAddress
 })
-app.use(morgan('short'))
+app.use(morgan('common'))
 // api
 app.use(require('./api'))
 

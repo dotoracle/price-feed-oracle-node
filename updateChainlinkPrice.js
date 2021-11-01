@@ -1,6 +1,7 @@
 const config = require('config')
 const chainlinkHelper = require('./helpers/chainlink')
 const db = require('./models')
+const logger = require('./helpers/logger')
 
 let sleep = (time) => new Promise((resolve) => setTimeout(resolve, time))
 async function main() {
@@ -13,8 +14,7 @@ async function main() {
             }
         })
         await Promise.all(tokenMap2)
-
-        console.log('sleep 60 seconds before continue')
+        logger.info('update all token price at from chainlink. Sleep 60 seconds before continue')
         await sleep(60000)
     }
 }
